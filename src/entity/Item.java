@@ -1,6 +1,7 @@
 package entity;
 
 import java.util.ArrayList;
+import java.text.DecimalFormat;
 
 /**
  * @author braydenphanna
@@ -29,6 +30,7 @@ public class Item
 
     @Override
     public String toString() {
-        return "Customer{" + "ID=" + ID + ", name=" + name + ", price=" + price + ", options=" + options + '}';
+        DecimalFormat df = new DecimalFormat("#.00");
+        return name + " — $"+df.format(price);
     }
 }
