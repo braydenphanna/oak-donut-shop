@@ -13,9 +13,9 @@ public class Item
     private int ID;
     private String name;
     private double price;
-    private ArrayList<String> options;
+    private String[][] options;
     
-    public Item(int ID, String name, double price, ArrayList<String> options){
+    public Item(int ID, String name, double price, String[][] options){
         this.ID = ID;
         this.name = name;
         this.price = price;
@@ -25,10 +25,10 @@ public class Item
         this.ID = ID;
         this.name = name;
         this.price = price;
-
-        String[] stringArray = options.split(",");
-        List<String> stringList = Arrays.asList(stringArray);
-        this.options = new ArrayList<>(stringList);
+        String[] arr = options.split("\n");
+        this.options  = new String[arr.length][];
+        for(int r=0; r<arr.length; r++)
+            this.options[r] = arr[r].split(",");
     }
 
     public int getID() { return ID; }
@@ -37,9 +37,16 @@ public class Item
 
     public double getPrice() { return price; }
 
-    public ArrayList<String> getOptions() { return options; }
+    public String[][] getOptions() { return options; }
     
-    public String getOptionsAsString() { return String.join(",",options); }
+    public String getOptionsAsString() { 
+        String[] rowStrings = new String[options.length];
+        for (int i = 0; i < options.length; i++) {
+            rowStrings[i] = String.join(", ", options[i]);
+        }
+
+       return String.join("\n", rowStrings);
+    }
 
     @Override
     public String toString() {

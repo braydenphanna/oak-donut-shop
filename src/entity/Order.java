@@ -13,14 +13,16 @@ public class Order
     private int ID;
     private int price;
     private String dateTime;
-    private String itemName;
+    private Item[] items;
+    private int[] itemQuanities;
     
-    public Order(int ID, int price, String dateTime, String itemName)
+    public Order(int ID, int price, String dateTime, Item[] items, int[] itemQuanities)
     {
         this.ID = ID;
         this.price = price;
         this.dateTime = dateTime;
-        this.itemName = itemName;
+        this.items = items;
+        this.itemQuanities = itemQuanities;
     }
 
     public int getID() {
@@ -35,11 +37,15 @@ public class Order
         return dateTime;
     }
 
-    public String getItemName() {
-        return itemName;
+    public Item[] getItems() {
+        return items;
     }
+     public int[] getItemQuanities() {
+        return itemQuanities;
+    }
+    
     @Override
     public String toString() {
-        return "Order{" + "ID=" + ID + ", price=" + price + ", dateTime=" + dateTime + ", itemName=" + itemName +'}';
+        return "Order{" + "ID=" + ID + ", price=" + price + ", dateTime=" + dateTime + ", items=" + items +'}';
     }
 }
