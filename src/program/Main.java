@@ -6,12 +6,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Vector;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
+import java.awt.event.*;
 
 import entity.*;
 import javax.swing.*;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.text.html.parser.Entity;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.ListSelectionEvent;
 
 /**
  * @author braydenphanna
@@ -79,27 +81,29 @@ public class Main extends javax.swing.JFrame {
         westPanel.add(searchField);
 
 
-        westPanel.add(new JSeparator(SwingConstants.HORIZONTAL));
-        JLabel itemOptionsLabel= new JLabel("Item Options");
-        itemOptionsLabel.setFont(new Font("Verdana", Font.BOLD, 16));
-        itemOptionsLabel.setForeground(Color.BLACK);
-        westPanel.add(itemOptionsLabel);
 
-        ArrayList<String> testOptions = new ArrayList<String>();
-        testOptions.add("Icing");
-        testOptions.add("Filling");
-        entity.Item testItem = new entity.Item(0, "donut", 1.59,testOptions);
-        for (String option : testItem.getOptions()) {
-            JLabel optionLabel = new JLabel(option+":");
-            optionLabel.setFont(new Font("Verdana", Font.BOLD, 12));
-            optionLabel.setForeground(Color.BLACK);
-            westPanel.add(optionLabel);
-
-            JComboBox<String> optionComboBox = new JComboBox<>(new String[]{"All","1","2"});
-            westPanel.add(optionComboBox);
+        String[] menuStringArr = new String[menu.size()];
+        for(int i = 0; i < menu.size(); i++){
+            String menuItemAsString = menu.get(i).toString();
+            if(menuItemAsString.contains(searchField.getText())){
+                menuStringArr[i] = menuItemAsString;
+            }
         }
 
-            westPanel.add(Box.createVerticalStrut(305));
+        JList<String> menuItemNames = new JList<String>(menuStringArr);
+        menuItemNames.addListSelectionListener(new ListSelectionListener(){
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if ( !e.getValueIsAdjusting() && !menuItemNames.isSelectionEmpty()) {  
+                    System.out.print("test");
+                    if(menuItemNames.getSelectedIndex()>=0){
+                            generateItemOptions(menuItemNames,westPanel);
+                    }
+                }  
+                
+            }
+        });
+        westPanel.add(Box.createVerticalStrut(305));
 
         // CENTER PANEL
 
@@ -113,18 +117,8 @@ public class Main extends javax.swing.JFrame {
         menulabel.setForeground(Color.BLACK);
         centerPanel.add(menulabel);
 
-        String[] menuStringArr = new String[menu.size()];
-        for(int i = 0; i < menu.size(); i++){
-            menuStringArr[i] = menu.get(i).toString();
-        }
-        JList<String> menuItemNames = new JList<String>(menuStringArr);
         JScrollPane menuScrollPane = new JScrollPane(menuItemNames);
         centerPanel.add(menuScrollPane);
-
-        // EAST PANEL
-        JPanel eastPanel = new JPanel();
-        eastPanel.setBorder(BorderFactory.createLineBorder(Color.GREEN));
-        add(eastPanel, BorderLayout.EAST);
 
         JButton addButton = new JButton("Add to Order");
         addButton.addActionListener(new ActionListener() {
@@ -145,6 +139,12 @@ public class Main extends javax.swing.JFrame {
             }
         });
         centerPanel.add(addButton);
+
+
+        // EAST PANEL
+        JPanel eastPanel = new JPanel();
+        eastPanel.setBorder(BorderFactory.createLineBorder(Color.GREEN));
+        add(eastPanel, BorderLayout.EAST);
 
         JTable orderTable = new JTable();
         javax.swing.table.DefaultTableModel dtm = new javax.swing.table.DefaultTableModel(
@@ -178,6 +178,26 @@ public class Main extends javax.swing.JFrame {
         setVisible(true);
     }
 
+    private void generateItemOptions(JList menuItemNames, JPanel westPanel){
+        System.out.print(menuItemNames.getSelectedIndex());
+        westPanel.add(new JSeparator(SwingConstants.HORIZONTAL));
+        JLabel itemOptionsLabel= new JLabel("Item Options");
+        itemOptionsLabel.setFont(new Font("Verdana", Font.BOLD, 16));
+        itemOptionsLabel.setForeground(Color.BLACK);
+        westPanel.add(itemOptionsLabel);
+
+        for (String option : menu.get(menuItemNames.getSelectedIndex()).getOptions()) {
+            JLabel optionLabel = new JLabel(option+":");
+            optionLabel.setFont(new Font("Verdana", Font.BOLD, 12));
+            optionLabel.setForeground(Color.BLACK);
+            westPanel.add(optionLabel);
+
+            JComboBox<String> optionComboBox = new JComboBox<>(new String[]{"All","1","2"});
+            westPanel.add(optionComboBox);
+        }
+
+        revalidate();
+    }
     /**
      * ITEM CRUD FUNCTIONS
     */
