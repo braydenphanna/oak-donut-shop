@@ -28,7 +28,7 @@ public class Item
         String[] arr = options.split("\n");
         this.options  = new String[arr.length][];
         for(int r=0; r<arr.length; r++)
-            this.options[r] = arr[r].split(",");
+            this.options[r] = arr[r].split(",|\\:");
     }
 
     public int getID() { return ID; }
@@ -42,8 +42,10 @@ public class Item
     public String getOptionsAsString() { 
         String[] rowStrings = new String[options.length];
         for (int i = 0; i < options.length; i++) {
-            rowStrings[i] = String.join(", ", options[i]);
+            rowStrings[i] = String.join(",", options[i]);
+            rowStrings[i] = rowStrings[i].replaceFirst(",", ":");
         }
+        
 
        return String.join("\n", rowStrings);
     }

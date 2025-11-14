@@ -2,5 +2,5 @@ CREATE TABLE HD_Item(
     Item_ID int NOT NULL PRIMARY KEY,
     Item_Name VARCHAR(20) NOT NULL,
     Item_Price VARCHAR(20) NOT NULL,
-    Item_Options VARCHAR(20) NOT NULL
+    Item_Options VARCHAR(50) NOT NULL
 );

@@ -7,6 +7,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
+
+import java.util.*;
 import java.util.Vector;
 import java.awt.event.*;
 
@@ -16,7 +18,9 @@ import javax.swing.border.Border;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.html.parser.Entity;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.text.Document;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.DocumentEvent;
 import javax.swing.event.ListSelectionEvent;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -30,15 +34,21 @@ public class Main extends javax.swing.JFrame {
     private static ItemDAO itemDAO = new ItemDAO();
     private static OrderDAO orderDAO = new OrderDAO();
     private int orderIndex = 0;
-    private int itemIndex = 0;
+
+    private JList<String> menuItemNames;
+    private JScrollPane menuScrollPane;
+    private JTextField searchField;
+    private DefaultListModel<String> listModel;
+
+    private JComboBox<String> categoryComboBox;
 
     public Main(){
 
         menu.add(new Item(0,"Glazed Donut", 1.49, "Icing,Chocolate,Vanilla\nFilling,Jelly,Cream"));
         menu.add(new Item(1,"Donut w/ Sprinkles", 1.79, "Icing,Chocolate,Vanilla\nFilling,Jelly,Cream"));
-        menu.add(new Item(2,"House Coffee", 2.00,"Sugar,A little,A lot\nCream,A little,A lot"));
+        menu.add(new Item(2,"Breakfast Sandwich", 4.50, "Icing,Chocolate,Vanilla\nFilling,Jelly,Cream"));
         menu.add(new Item(3,"Latte", 3.00, "Icing,Chocolate,Vanilla\nFilling,Jelly,Cream"));
-        menu.add(new Item(4,"Breakfast Sandwich", 4.50, "Icing,Chocolate,Vanilla\nFilling,Jelly,Cream"));
+        menu.add(new Item(4,"House Coffee", 2.00,"Sugar,A little,A lot\nCream,A little,A lot"));
         initComponents();
     }
     private void initComponents(){
@@ -78,7 +88,13 @@ public class Main extends javax.swing.JFrame {
         categoryLabel.setForeground(Color.BLACK);
         westPanel.add(categoryLabel);
 
-        JComboBox<String> categoryComboBox = new JComboBox<>(new String[]{"All","1","2"});
+        categoryComboBox = new JComboBox<>(new String[]{"All","Food","Drinks"});
+        categoryComboBox.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                System.out.print("TEST");
+                updateMenuItems();
+            }
+        });
         westPanel.add(categoryComboBox);
 
         JLabel searchLabel = new JLabel("Search:");
@@ -86,17 +102,25 @@ public class Main extends javax.swing.JFrame {
         searchLabel.setForeground(Color.BLACK);
         westPanel.add(searchLabel);
 
-        JTextField searchField = new JTextField();
-        westPanel.add(searchField);
+        searchField = new JTextField();
 
-        String[] menuStringArr = new String[menu.size()];
-        for(int i = 0; i < menu.size(); i++){
-            String menuItemAsString = menu.get(i).toString();
-            if(menuItemAsString.contains(searchField.getText())){
-                menuStringArr[i] = menuItemAsString;
+        Document doc = searchField.getDocument();
+
+        listModel = new DefaultListModel<>();
+        menuItemNames = new JList<String>(listModel);
+
+        doc.addDocumentListener(new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) {
+                updateMenuItems();
             }
-        }
-        JList<String> menuItemNames = new JList<String>(menuStringArr);
+            public void removeUpdate(DocumentEvent e) {
+                updateMenuItems();
+            }
+            public void changedUpdate(DocumentEvent e) {
+            }
+        });
+
+        westPanel.add(searchField);
        
         System.out.print(menuItemNames.getSelectedIndex());
         westPanel.add(new JSeparator(SwingConstants.HORIZONTAL));
@@ -133,11 +157,11 @@ public class Main extends javax.swing.JFrame {
                         generateItemOptions(menuItemNames, itemOptionsLabel, optionLabel, optionComboBox, optionLabel2, optionComboBox2);
                     }
                 }  
-                
             }
         });
+        
 
-        westPanel.add(Box.createVerticalStrut(305));
+        westPanel.add(Box.createVerticalStrut(600));
 
         // CENTER PANEL
 
@@ -151,7 +175,8 @@ public class Main extends javax.swing.JFrame {
         menulabel.setForeground(Color.BLACK);
         centerPanel.add(menulabel);
 
-        JScrollPane menuScrollPane = new JScrollPane(menuItemNames);
+        menuScrollPane = new JScrollPane(menuItemNames);
+        updateMenuItems();
         centerPanel.add(menuScrollPane);
 
         JPanel lowerCenterPanel = new JPanel();
@@ -190,7 +215,8 @@ public class Main extends javax.swing.JFrame {
 
                     System.out.println("Selected item index: " + selectedItemIndex);
                     Item i = menu.get(selectedItemIndex);
-                    addItem(i.getID(), i.getName(), i.getPrice(), ""+optionComboBox.getSelectedItem().toString()+"\n"+optionComboBox2.getSelectedItem().toString());
+                    String optionsString = i.getOptions()[0][0] + ": "+optionComboBox.getSelectedItem().toString()+"\n"+i.getOptions()[1][0] + ": "+optionComboBox2.getSelectedItem().toString();
+                    addItem(i.getID(), i.getName(), i.getPrice(), optionsString);
                     for(int j = 0; j<(int)quantitySpinner.getValue(); j++){
                         if(getOrder(orderIndex).getID()==-1){
                             addOrder(orderIndex,i.getPrice(),LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),i.getName());
@@ -200,9 +226,9 @@ public class Main extends javax.swing.JFrame {
                             System.out.println("UPDATE ORDER " + getOrder(orderIndex).getID());
                         }
                     }
-                    initComponents();
-                    updateOrderTable(dtm, i, (int)quantitySpinner.getValue());
+                    updateOrderTable(dtm, i, (int)quantitySpinner.getValue(), optionsString);
                     quantitySpinner.setValue(1);
+                    menuItemNames.clearSelection();
                 } else {
                     System.out.println("No item selected.");
                 }
@@ -221,10 +247,14 @@ public class Main extends javax.swing.JFrame {
         
         if (itemDAO.getAll()!=null){
             java.util.List<Item> currentOrder = itemDAO.getAll();
-            for(Item item : currentOrder){
-                dtm.addRow(new Object[]{item.getName(), item.getOptionsAsString(), quantitySpinner.getValue(),item.getPrice(),item.getPrice()*(int)quantitySpinner.getValue()});
+            for(Item item : currentOrder){  
+                String[] options = item.getOptionsAsString().split("\n");
+                
+                dtm.addRow(new Object[]{item.getName(), options[0]+", " +options[1], quantitySpinner.getValue(),item.getPrice(),item.getPrice()*(int)quantitySpinner.getValue()});
             }
             orderTable.setModel(dtm);
+            orderTable.getColumnModel().getColumn(0).setPreferredWidth(150);
+            orderTable.getColumnModel().getColumn(1).setPreferredWidth(350);
         }
         
         JScrollPane orderScroll = new JScrollPane(orderTable);
@@ -292,8 +322,41 @@ public class Main extends javax.swing.JFrame {
         revalidate();
     }
 
-    private void updateOrderTable(DefaultTableModel dtm, Item item, int quanity){
-          dtm.addRow(new Object[]{item.getName(), item.getOptionsAsString(), quanity,item.getPrice(),item.getPrice()*quanity});
+    private String[] filterMenuItems(String query){
+        String category = (String)categoryComboBox.getSelectedItem();
+
+        String[] menuStringArr = new String[menu.size()];
+        int i = 0;
+        int j = menu.size();
+        if(category=="Food") {i = 0; j = 3;}
+        if(category=="Drinks") {i = 3;  j = 5;}
+        for(;i < j; i++){
+            String menuItemAsString = menu.get(i).toString();
+            if(menuItemAsString.toUpperCase().contains(query.toUpperCase())){
+                menuStringArr[i] = menuItemAsString;
+            }
+        }
+        return menuStringArr;
+    }
+    private void updateMenuItems(){
+        String[] filteredItems = filterMenuItems(searchField.getText());
+
+        // Clear the current list model (this removes existing items)
+        listModel.clear();
+
+        // Add filtered items to the list model
+        for (String item : filteredItems) {
+            listModel.addElement(item);  // Adds an item to the list model
+        }
+
+        // Revalidate and repaint the JScrollPane containing the JList
+        menuScrollPane.revalidate();
+        menuScrollPane.repaint();
+    }
+
+    private void updateOrderTable(DefaultTableModel dtm, Item item, int quanity, String optionsString){
+        String[] options =optionsString.split("\n");
+          dtm.addRow(new Object[]{item.getName(), options[0]+", "+ options[1], quanity,item.getPrice(),item.getPrice()*quanity});
     }
     /**
      * ITEM CRUD FUNCTIONS
