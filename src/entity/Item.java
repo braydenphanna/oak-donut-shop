@@ -7,6 +7,7 @@ import java.text.DecimalFormat;
 
 /**
  * @author braydenphanna
+ * modfied by braydenphanna
  */
 public class Item 
 {
@@ -25,7 +26,7 @@ public class Item
         this.ID = ID;
         this.name = name;
         this.price = price;
-        String[] arr = options.split("\n");
+        String[] arr = options.split("&&");
         this.options  = new String[arr.length][];
         for(int r=0; r<arr.length; r++)
             this.options[r] = arr[r].split(",|\\:");
@@ -46,8 +47,7 @@ public class Item
             rowStrings[i] = rowStrings[i].replaceFirst(",", ":");
         }
         
-
-       return String.join("\n", rowStrings);
+        return String.join("\n", rowStrings);
     }
 
     @Override

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package entity;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,6 +11,7 @@ import java.sql.SQLException;
 /**
  *
  * @author Gokhan
+ * modfied by braydenphanna
  */
 public class ItemDAO implements DAO<Item>
 {   
@@ -24,16 +20,19 @@ public class ItemDAO implements DAO<Item>
     }
     List<Item> items;
     /**
-     * Get a single customer entity as a customer object
+     * Get a single item entity as a item object
      * @param id
      * @return 
      */
     @Override
     public Optional<Item> get(int id) {
+        return get(id,"HD_Item");
+    }
+    public Optional<Item> get(int id, String table) {
         DB db = DB.getInstance();
         ResultSet rs = null;
         try {
-            String sql = "SELECT * FROM HD_Item WHERE Item_ID = ?";
+            String sql = "SELECT * FROM "+table+" WHERE Item_ID = ?";
             PreparedStatement stmt = db.getPreparedStatement(sql);
             stmt.setInt(1, id);
             rs = stmt.executeQuery();
@@ -49,7 +48,7 @@ public class ItemDAO implements DAO<Item>
     }
     
     /**
-     * Get all customer entities as a List
+     * Get all item entities as a List
      * @return 
      */
     @Override
@@ -73,7 +72,7 @@ public class ItemDAO implements DAO<Item>
     }
     
     /**
-     * Insert a customer object into customer table
+     * Insert a item object into item table
      * @param item 
      */
     @Override
@@ -97,14 +96,14 @@ public class ItemDAO implements DAO<Item>
     }
     
     /**
-     * Update a customer entity in database if it exists using a customer object
-     * @param customer
+     * Update a item entity in database if it exists using a item object
+     * @param item
      */
     @Override
     public void update(Item item) {
         DB db = DB.getInstance();
         try {
-            String sql = "UPDATE HD_Item SET Item_Name=?, Item_Price=?, Item_Options=? WHERE Customer_ID=?";
+            String sql = "UPDATE HD_Item SET Item_Name=?, Item_Price=?, Item_Options=? WHERE Item_ID=?";
             PreparedStatement stmt = db.getPreparedStatement(sql);
             stmt.setInt(1, item.getID());
             stmt.setString(2, item.getName());
@@ -120,8 +119,8 @@ public class ItemDAO implements DAO<Item>
     }
     
     /**
-     * Delete a customer from customer table if the entity exists
-     * @param customer 
+     * Delete a item from item table if the entity exists
+     * @param item 
      */
     @Override
     public void delete(Item item) {
